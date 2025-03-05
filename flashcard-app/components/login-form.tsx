@@ -20,45 +20,50 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { client } from "@/lib/axiosClient";
 import { useMutation } from "@tanstack/react-query";
-
-const loginAPI = async () => {
-  const response = await client.get("/auth/google/login");
-  return response.data;
-};
+// import { useLogout } from "@/app/dashboard/deck/service/useLogout";
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+  });
+
+  const onChangeText = (key: keyof typeof form, value: string) => {
+    setForm((values) => ({
+      ...values,
+      [key]: value,
+    }));
+  };
+
+  const loginMutation = useMutation({
+    mutationFn: async () => {
+      const response = await client.post("/auth/login", {
+        username: form.username,
+        password: form.password,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      router.push("/dashboard");
+    },
+    onError: () => {
+      setError("Lỗi đăng nhập");
+    },
+    onSettled: () => {
+      setIsLoading(false);
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    loginMutation.mutate();
   };
-
-  const googleLoginMutation = useMutation({
-    mutationFn: loginAPI,
-    onMutate: () => {
-      setIsLoading(true);
-      setError("");
-    },
-    onError: (error: any) => {
-      setError("Something went wrong during Google login.");
-      setIsLoading(false);
-    },
-    onSuccess: (data) => {
-      setIsLoading(false);
-      // Handle success (for example, you can store the token or navigate)
-      router.push("/dashboard");
-    },
-  });
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
@@ -85,7 +90,13 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">Tên đăng nhập</Label>
-            <Input id="username" placeholder="Nhập tên đăng nhập" required />
+            <Input
+              id="username"
+              placeholder="Nhập tên đăng nhập"
+              value={form.username}
+              onChange={(e) => onChangeText("username", e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
@@ -93,6 +104,8 @@ export default function LoginForm() {
               id="password"
               type="password"
               placeholder="Nhập mật khẩu"
+              value={form.password}
+              onChange={(e) => onChangeText("password", e.target.value)}
               required
             />
           </div>

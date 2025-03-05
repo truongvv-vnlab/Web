@@ -24,7 +24,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ) {
-    console.log({ profile });
     done(null, { profile, accessToken });
   }
 }

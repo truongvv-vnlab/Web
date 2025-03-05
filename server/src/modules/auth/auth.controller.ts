@@ -1,12 +1,43 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
+import { AuthService } from './auth.service';
+import { ConfigService } from '@nestjs/config';
 import { GoogleAuthGuard } from 'src/common/guards/google-auth/google-auth.guard';
-import { JwtService } from '@nestjs/jwt';
+import { LoginInput } from './dto/input/login.input';
+import { RegisterInput } from './dto/input/register.input';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
+  @HttpCode(HttpStatus.OK)
+  @Post('/login')
+  async login(@Body() loginDto: LoginInput, @Res() res: Response) {
+    const { user, jwtToken } = await this.authService.login(loginDto);
+    const cookieConfig = this.configService.get('cookie');
+
+    res.cookie('accessToken', jwtToken, cookieConfig);
+
+    return res.json({ user });
+  }
+
+  @Post('/register')
+  async register(@Body() register: RegisterInput) {}
+
+  @HttpCode(HttpStatus.OK)
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
   googleLogin(@Req() req: Request, @Res() res: Response) {
@@ -14,26 +45,47 @@ export class AuthController {
     res.redirect(googleAuthUrl);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleCallback(@Req() req: Request, @Res() res: Response) {
-    const { profile } = req.user as any;
+  async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    try {
+      const { profile, accessToken } = req.user as any;
+      const jwtToken = await this.authService.handleGoogleAuth(profile);
 
-    console.log(profile);
-    const payload = {
-      email: profile.emails[0].value,
-      sub: profile.id,
-    };
+      const cookieConfig = this.configService.get('cookie');
 
-    const jwtToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      res.cookie('accessToken', jwtToken, cookieConfig);
+      res.cookie('googleAccessToken', accessToken, cookieConfig);
 
-    res.cookie('accessToken', jwtToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 3600000,
-    });
+      return res.redirect('http://localhost:3000/dashboard');
+    } catch (error) {
+      return res.status(401).json({ message: error.message });
+    }
+  }
 
-    return res.redirect('http://localhost:3000/dashboard');
+  @HttpCode(HttpStatus.OK)
+  @Post('google/logout')
+  async googleLogout(@Req() req: Request, @Res() res: Response) {
+    const googleToken = req.cookies['googleAccessToken'];
+
+    try {
+      if (googleToken) {
+        await fetch(
+          `https://accounts.google.com/o/oauth2/revoke?token=${googleToken}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          },
+        );
+      }
+      res.clearCookie('accessToken');
+      res.clearCookie('googleAccessToken');
+
+      return res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+      console.error('Logout error:', error);
+      return res.status(500).json({ message: 'Logout failed', error });
+    }
   }
 }

@@ -48,7 +48,7 @@ import { AppResolver } from './app.resolver';
       useClass: GraphqlConfig,
     }),
     AuthModule,
-    // UserModule,
+    UserModule,
     // DeckModule,
     // CardModule,
   ],

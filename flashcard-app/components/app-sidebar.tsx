@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,16 +18,12 @@ import {
   SidebarGroupContent,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-  PlusCircle,
-  BookOpen,
-  Star,
-  Clock,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { PlusCircle, BookOpen, Star, Settings, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CreateDeckDialog } from "@/components/create-deck-dialog";
+import { client } from "@/lib/axiosClient";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "./ui/use-toast";
 
 // Mẫu dữ liệu cho các bộ thẻ
 const cardDecks = [
@@ -52,6 +48,17 @@ const cardDecks = [
 export function AppSidebar() {
   const pathname = usePathname();
   const [isCreateDeckOpen, setIsCreateDeckOpen] = useState(false);
+  const router = useRouter();
+  const toast = useToast();
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await client.post("/auth/google/logout");
+    },
+    onSuccess: () => {
+      router.push("/");
+    },
+  });
 
   return (
     <Sidebar>
@@ -138,12 +145,14 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Đăng xuất</span>
-              </Link>
+          <SidebarMenuItem
+            onClick={() => {
+              logoutMutation.mutate();
+            }}
+          >
+            <SidebarMenuButton>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Đăng xuất</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
