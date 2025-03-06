@@ -3,7 +3,7 @@ import { Document, ObjectId } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class User extends Document<ObjectId> {
-  @Prop({ unique: true, trim: true, lowercase: true })
+  @Prop({ unique: true, trim: true, lowercase: true, sparse: true })
   email?: string;
 
   @Prop({ unique: true, sparse: true, trim: true })

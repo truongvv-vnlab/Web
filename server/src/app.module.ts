@@ -10,8 +10,6 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { GraphqlConfig } from './config/graphql.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
-import { DeckModule } from './modules/deck/deck.module';
-import { CardModule } from './modules/card/card.module';
 import { AppResolver } from './app.resolver';
 
 @Module({

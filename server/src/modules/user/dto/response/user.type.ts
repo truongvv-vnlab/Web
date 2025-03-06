@@ -1,19 +1,21 @@
-// import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectId } from 'mongoose';
+import { ObjectIdScalar } from 'src/common/graphql/uuid.scarlar';
 
-// @ObjectType()
-// export class UserType {
-//   @Field()
-//   _id: string;
+@ObjectType()
+export class UserResp {
+  @Field(() => ObjectIdScalar)
+  _id: ObjectId;
 
-//   @Field()
-//   back: string;
+  @Field({ nullable: true })
+  email?: string;
 
-//   @Field()
-//   userId: string;
+  @Field({ nullable: true })
+  username?: string;
 
-//   @Field()
-//   createdAt: Date;
+  @Field()
+  name: string;
 
-//   @Field()
-//   updatedAt: Date;
-// }
+  @Field({ nullable: true })
+  googleId?: string;
+}

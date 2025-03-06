@@ -28,14 +28,17 @@ export class AuthController {
   async login(@Body() loginDto: LoginInput, @Res() res: Response) {
     const { user, jwtToken } = await this.authService.login(loginDto);
     const cookieConfig = this.configService.get('cookie');
-
     res.cookie('accessToken', jwtToken, cookieConfig);
-
     return res.json({ user });
   }
 
   @Post('/register')
-  async register(@Body() register: RegisterInput) {}
+  async register(@Body() registerDTO: RegisterInput, @Res() res: Response) {
+    const { user, jwtToken } = await this.authService.register(registerDTO);
+    const cookieConfig = this.configService.get('cookie');
+    res.cookie('accessToken', jwtToken, cookieConfig);
+    return res.json({ user });
+  }
 
   @HttpCode(HttpStatus.OK)
   @Get('google/login')
@@ -50,13 +53,17 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     try {
-      const { profile, accessToken } = req.user as any;
-      const jwtToken = await this.authService.handleGoogleAuth(profile);
+      const { profile } = req.user as any;
+      const existingToken: string | null = req.cookies['accessToken'];
+      // console.log('CHECK:' + existingToken);
+      const { jwtToken } = await this.authService.handleGoogleAuth(
+        profile,
+        existingToken,
+      );
 
       const cookieConfig = this.configService.get('cookie');
 
       res.cookie('accessToken', jwtToken, cookieConfig);
-      res.cookie('googleAccessToken', accessToken, cookieConfig);
 
       return res.redirect('http://localhost:3000/dashboard');
     } catch (error) {
@@ -66,21 +73,9 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('google/logout')
-  async googleLogout(@Req() req: Request, @Res() res: Response) {
-    const googleToken = req.cookies['googleAccessToken'];
-
+  googleLogout(@Req() req: Request, @Res() res: Response) {
     try {
-      if (googleToken) {
-        await fetch(
-          `https://accounts.google.com/o/oauth2/revoke?token=${googleToken}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          },
-        );
-      }
       res.clearCookie('accessToken');
-      res.clearCookie('googleAccessToken');
 
       return res.json({ message: 'Logged out successfully' });
     } catch (error) {

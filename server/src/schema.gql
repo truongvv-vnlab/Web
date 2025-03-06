@@ -2,6 +2,33 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input ChangePasswordInput {
+  newPassword: String!
+  oldPassword: String!
+  rePassword: String!
+}
+
+type ChangePasswordResp {
+  message: String!
+  success: Boolean!
+}
+
+type Mutation {
+  changePassword(input: ChangePasswordInput!): ChangePasswordResp!
+}
+
+"""MongoDB ObjectId Scalar Type"""
+scalar ObjectId
+
 type Query {
   getHello: String!
+  whoami: UserResp
+}
+
+type UserResp {
+  _id: ObjectId!
+  email: String
+  googleId: String
+  name: String!
+  username: String
 }
