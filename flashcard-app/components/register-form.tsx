@@ -18,17 +18,19 @@ import {
 } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRegister } from "@/hooks/auth/useAuth";
 
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
-    email: "",
+    name: "",
     password: "",
     repassword: "",
   });
   const [error, setError] = useState("");
   const router = useRouter();
+  const registerMutation = useRegister();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,9 +46,9 @@ export default function RegisterForm() {
     // Validate form
     if (
       !formData.username ||
-      !formData.email ||
       !formData.password ||
-      !formData.repassword
+      !formData.repassword ||
+      !formData.name
     ) {
       setError("Vui lòng điền đầy đủ thông tin");
       setIsLoading(false);
@@ -59,11 +61,14 @@ export default function RegisterForm() {
       return;
     }
 
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    registerMutation.mutate(formData, {
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+      onSettled: () => {
+        setIsLoading(false);
+      },
+    });
   };
 
   return (
@@ -96,13 +101,12 @@ export default function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="name">Tên</Label>
             <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Nhập địa chỉ email"
-              value={formData.email}
+              id="name"
+              name="name"
+              placeholder="Nhập tên đăng nhập"
+              value={formData.name}
               onChange={handleChange}
               required
             />

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
   _id: string;
@@ -8,15 +8,12 @@ interface User {
   googleId?: string;
 }
 
-export type UserStateType = {
-  user?: User;
-};
-
 export type UserContextType = {
   user?: User;
   setUser: (user: User) => void;
-  updateUser: (user: User) => void;
   removeUser: () => void;
+  isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
 };
 
 export const UserContext = createContext<UserContextType | null>(null);
@@ -25,21 +22,36 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUserState] = useState<User | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
 
   const setUser = (user: User) => {
-    setUserState(user);
-  };
-
-  const updateUser = (user: User) => {
-    setUserState(user);
+    setIsLoading(true);
+    try {
+      setUserState(user);
+      localStorage.setItem("user", JSON.stringify(user));
+    } catch (error) {
+      console.error("Error setting user:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const removeUser = () => {
-    setUserState(undefined);
+    setIsLoading(true);
+    try {
+      setUserState(undefined);
+      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Error removing user:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, updateUser, removeUser }}>
+    <UserContext.Provider
+      value={{ user, setUser, removeUser, isLoading, setIsLoading }}
+    >
       {children}
     </UserContext.Provider>
   );

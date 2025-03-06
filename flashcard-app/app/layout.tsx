@@ -1,14 +1,15 @@
 "use client";
 
 import type React from "react";
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import UserProvider from "@/context/userContext";
-
+import { Toaster } from "sonner";
+import { ApolloProvider } from "@apollo/client";
+import apolloClient from "@/lib/apolloClient";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
@@ -27,7 +28,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryClientProvider client={queryClient}>
-            <UserProvider>{children}</UserProvider>
+            <ApolloProvider client={apolloClient}>
+              <UserProvider>
+                {children}
+                <Toaster position="bottom-right" />
+              </UserProvider>
+            </ApolloProvider>
           </QueryClientProvider>
         </ThemeProvider>
       </body>

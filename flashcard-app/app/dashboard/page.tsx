@@ -1,4 +1,5 @@
-import { FlashcardDeck } from "@/components/flashcard-deck"
+"use client";
+import { FlashcardDeck } from "@/components/flashcard-deck";
 
 export default function DashboardPage() {
   return (
@@ -6,6 +7,5 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold mb-6">Bộ thẻ của tôi</h1>
       <FlashcardDeck />
     </div>
-  )
+  );
 }
-

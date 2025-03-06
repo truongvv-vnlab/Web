@@ -21,9 +21,8 @@ import {
 import { PlusCircle, BookOpen, Star, Settings, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CreateDeckDialog } from "@/components/create-deck-dialog";
-import { client } from "@/lib/axiosClient";
-import { useMutation } from "@tanstack/react-query";
-import { useToast } from "./ui/use-toast";
+import { useLogout } from "@/hooks/auth/useAuth";
+import { useUserContext } from "@/context/userContext";
 
 // Mẫu dữ liệu cho các bộ thẻ
 const cardDecks = [
@@ -49,16 +48,16 @@ export function AppSidebar() {
   const pathname = usePathname();
   const [isCreateDeckOpen, setIsCreateDeckOpen] = useState(false);
   const router = useRouter();
-  const toast = useToast();
-
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await client.post("/auth/google/logout");
-    },
-    onSuccess: () => {
-      router.push("/");
-    },
-  });
+  const { user, removeUser } = useUserContext();
+  const logoutMutation = useLogout();
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        removeUser();
+        router.push("/login");
+      },
+    });
+  };
 
   return (
     <Sidebar>
@@ -145,11 +144,7 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem
-            onClick={() => {
-              logoutMutation.mutate();
-            }}
-          >
+          <SidebarMenuItem onClick={handleLogout}>
             <SidebarMenuButton>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Đăng xuất</span>
@@ -159,16 +154,15 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 p-2">
           <Link href="/dashboard/settings">
             <Avatar className="h-8 w-8 cursor-pointer">
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Avatar"
-              />
+              <AvatarImage src="/avatar.jpg" alt="Avatar" />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </Link>
           <div className="grid gap-0.5 text-sm">
-            <p className="font-medium">Người dùng</p>
-            <p className="text-xs text-muted-foreground">user@example.com</p>
+            <p className="font-medium">{user?.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {user?.email ?? "Chưa liên kết mail"}
+            </p>
           </div>
         </div>
       </SidebarFooter>

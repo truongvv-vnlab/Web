@@ -18,9 +18,7 @@ import {
 } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { client } from "@/lib/axiosClient";
-import { useMutation } from "@tanstack/react-query";
-// import { useLogout } from "@/app/dashboard/deck/service/useLogout";
+import { useLogin } from "@/hooks/auth/useAuth";
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,30 +37,20 @@ export default function LoginForm() {
     }));
   };
 
-  const loginMutation = useMutation({
-    mutationFn: async () => {
-      const response = await client.post("/auth/login", {
-        username: form.username,
-        password: form.password,
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      router.push("/dashboard");
-    },
-    onError: () => {
-      setError("Lỗi đăng nhập");
-    },
-    onSettled: () => {
-      setIsLoading(false);
-    },
-  });
+  const loginMutation = useLogin();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    loginMutation.mutate();
+    loginMutation.mutate(form, {
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+      onSettled: () => {
+        setIsLoading(false);
+      },
+    });
   };
 
   const handleGoogleLogin = () => {
