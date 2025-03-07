@@ -14,23 +14,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { AlertCircle, Check, Loader2 } from "lucide-react";
+import { AlertCircle, Check } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useUserContext } from "@/context/userContext";
 import { useMutation } from "@apollo/client";
-import { CHANGE_PASSWORD } from "@/lib/graphql/user/useUser";
+import { CHANGE_PASSWORD, UPDATE_USER } from "@/lib/graphql/user/useUser";
 
 export function UserProfile() {
-  const { user, isLoading, setIsLoading } = useUserContext();
+  const { user, isLoading, setIsLoading, setUser, removeUser } =
+    useUserContext();
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const [name, setName] = useState(user?.name);
+  const [name, setName] = useState(user!.name);
   const [passwords, setPasswords] = useState({
     oldPassword: "",
     newPassword: "",
     rePassword: "",
   });
   const [changePassword] = useMutation(CHANGE_PASSWORD);
+  const [updateUser] = useMutation(UPDATE_USER);
 
   const onChangeText = (key: keyof typeof passwords, value: string) => {
     setPasswords((values) => ({
@@ -45,17 +47,33 @@ export function UserProfile() {
     setError("");
     setSuccess("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setSuccess("Thông tin tài khoản đã được cập nhật thành công!");
-    }, 1000);
-  };
+    if (!name) {
+      setError("Tên không được bỏ trống");
+      setName(user!.name);
+      return;
+    }
 
-  // const handleLinkGoogle = () => {
-  //   setIsLoading(true);
-  //   setError("");
-  //   window.location.href = "http://localhost:4000/auth/google/login";
-  // };
+    setIsLoading(true);
+
+    try {
+      const { data } = await updateUser({
+        variables: {
+          input: { name },
+        },
+      });
+      if (data.updateUser.success) {
+        setSuccess("Người dùng đã được thay đổi thành công!");
+        removeUser();
+        console.log(data.updateUser.user);
+        setUser(data.updateUser.user);
+      } else {
+        throw new Error(data.updateUser.message || "Có lỗi xảy ra.");
+      }
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChangePassword = async () => {
     setError("");
@@ -153,7 +171,6 @@ export function UserProfile() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    // onChange={handleAvatarChange}
                   />
                 </div>
               </div>

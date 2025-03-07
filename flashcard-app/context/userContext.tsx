@@ -48,6 +48,14 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUserState(JSON.parse(storedUser));
+    }
+    setIsLoading(false);
+  }, []);
+
   return (
     <UserContext.Provider
       value={{ user, setUser, removeUser, isLoading, setIsLoading }}

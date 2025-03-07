@@ -15,20 +15,26 @@ type ChangePasswordResp {
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): ChangePasswordResp!
+  updateUser(input: UpdateUserInput!): UpdateUserResp!
 }
-
-"""MongoDB ObjectId Scalar Type"""
-scalar ObjectId
 
 type Query {
   getHello: String!
   whoami: UserResp
 }
 
+input UpdateUserInput {
+  name: String!
+}
+
+type UpdateUserResp {
+  message: String!
+  success: Boolean!
+  user: UserResp!
+}
+
 type UserResp {
-  _id: ObjectId!
   email: String
-  googleId: String
   name: String!
   username: String
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -39,6 +40,7 @@ import {
   Star,
   Trash2,
   Frown,
+  Settings,
 } from "lucide-react";
 
 // Mẫu dữ liệu cho các bộ thẻ
@@ -46,6 +48,7 @@ const cardDecks = [
   {
     id: "1",
     name: "Tiếng Anh cơ bản",
+    description: "Các từ vựng tiếng Anh cơ bản hàng ngày",
     count: 50,
     cards: [
       { id: "1", front: "Hello", back: "Xin chào", starred: false },
@@ -58,6 +61,7 @@ const cardDecks = [
   {
     id: "2",
     name: "Toán học",
+    description: "Các công thức toán học cơ bản",
     count: 30,
     cards: [
       { id: "1", front: "1 + 1", back: "2", starred: false },
@@ -70,6 +74,7 @@ const cardDecks = [
   {
     id: "3",
     name: "Lịch sử Việt Nam",
+    description: "Các sự kiện lịch sử quan trọng của Việt Nam",
     count: 45,
     cards: [
       {
@@ -108,12 +113,13 @@ const cardDecks = [
   {
     id: "4",
     name: "Khoa học",
+    description: "Các khái niệm khoa học cơ bản",
     count: 0,
     cards: [],
   },
 ];
 
-type Card = {
+type CardType = {
   id: string;
   front: string;
   back: string;
@@ -123,8 +129,9 @@ type Card = {
 type Deck = {
   id: string;
   name: string;
+  description?: string;
   count: number;
-  cards: Card[];
+  cards: CardType[];
 };
 
 export function DeckDetail({ deckId }: { deckId: string }) {
@@ -135,13 +142,21 @@ export function DeckDetail({ deckId }: { deckId: string }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingCard, setEditingCard] = useState<Card | null>(null);
+  const [isDeckSettingsOpen, setIsDeckSettingsOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [newCard, setNewCard] = useState<{ front: string; back: string }>({
     front: "",
     back: "",
   });
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deckSettings, setDeckSettings] = useState<{
+    name: string;
+    description: string;
+  }>({
+    name: "",
+    description: "",
+  });
 
   useEffect(() => {
     // Simulate fetching deck data
@@ -151,6 +166,10 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     setTimeout(() => {
       if (foundDeck) {
         setDeck(foundDeck);
+        setDeckSettings({
+          name: foundDeck.name,
+          description: foundDeck.description || "",
+        });
       }
       setIsLoading(false);
     }, 500);
@@ -189,7 +208,7 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     });
   };
 
-  const handleEditCard = (card: Card) => {
+  const handleEditCard = (card: CardType) => {
     setEditingCard({ ...card });
     setIsEditDialogOpen(true);
   };
@@ -244,7 +263,7 @@ export function DeckDetail({ deckId }: { deckId: string }) {
   const handleAddCard = () => {
     if (!deck || !newCard.front.trim() || !newCard.back.trim()) return;
 
-    const newCardObj: Card = {
+    const newCardObj: CardType = {
       id: Date.now().toString(),
       front: newCard.front,
       back: newCard.back,
@@ -263,6 +282,27 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     setIsAddDialogOpen(false);
   };
 
+  const handleOpenDeckSettings = () => {
+    if (!deck) return;
+    setDeckSettings({
+      name: deck.name,
+      description: deck.description || "",
+    });
+    setIsDeckSettingsOpen(true);
+  };
+
+  const handleSaveDeckSettings = () => {
+    if (!deck || !deckSettings.name.trim()) return;
+
+    setDeck({
+      ...deck,
+      name: deckSettings.name,
+      description: deckSettings.description,
+    });
+
+    setIsDeckSettingsOpen(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">Đang tải...</div>
@@ -278,7 +318,20 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     return (
       <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{deck.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{deck.name}</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleOpenDeckSettings}
+              title="Cài đặt bộ thẻ"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">0 thẻ</span>
+          </div>
         </div>
 
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
@@ -349,6 +402,60 @@ export function DeckDetail({ deckId }: { deckId: string }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog cài đặt bộ thẻ */}
+        <Dialog open={isDeckSettingsOpen} onOpenChange={setIsDeckSettingsOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cài đặt bộ thẻ</DialogTitle>
+              <DialogDescription>
+                Chỉnh sửa thông tin bộ thẻ của bạn.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="deck-name">Tên bộ thẻ</Label>
+                <Input
+                  id="deck-name"
+                  value={deckSettings.name}
+                  onChange={(e) =>
+                    setDeckSettings({ ...deckSettings, name: e.target.value })
+                  }
+                  placeholder="Nhập tên bộ thẻ"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deck-description">Mô tả (tùy chọn)</Label>
+                <Textarea
+                  id="deck-description"
+                  value={deckSettings.description}
+                  onChange={(e) =>
+                    setDeckSettings({
+                      ...deckSettings,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Nhập mô tả cho bộ thẻ"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeckSettingsOpen(false)}
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={handleSaveDeckSettings}
+                disabled={!deckSettings.name.trim()}
+              >
+                Lưu thay đổi
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -358,11 +465,31 @@ export function DeckDetail({ deckId }: { deckId: string }) {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{deck.name}</h1>
-        <Button variant="outline" onClick={handleFullscreenToggle}>
-          {isFullscreen ? "Thu nhỏ" : "Xem toàn màn hình"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold">{deck.name}</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleOpenDeckSettings}
+            title="Cài đặt bộ thẻ"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            {deck.cards.length} thẻ
+          </span>
+          <Button variant="outline" onClick={handleFullscreenToggle}>
+            {isFullscreen ? "Thu nhỏ" : "Xem toàn màn hình"}
+          </Button>
+        </div>
       </div>
+
+      {/* Hiển thị mô tả nếu có */}
+      {deck.description && (
+        <p className="text-muted-foreground">{deck.description}</p>
+      )}
 
       {/* Khu vực hiển thị flip card */}
       <div
@@ -572,6 +699,60 @@ export function DeckDetail({ deckId }: { deckId: string }) {
               disabled={!newCard.front.trim() || !newCard.back.trim()}
             >
               Thêm thẻ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog cài đặt bộ thẻ */}
+      <Dialog open={isDeckSettingsOpen} onOpenChange={setIsDeckSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cài đặt bộ thẻ</DialogTitle>
+            <DialogDescription>
+              Chỉnh sửa thông tin bộ thẻ của bạn.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="deck-name">Tên bộ thẻ</Label>
+              <Input
+                id="deck-name"
+                value={deckSettings.name}
+                onChange={(e) =>
+                  setDeckSettings({ ...deckSettings, name: e.target.value })
+                }
+                placeholder="Nhập tên bộ thẻ"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deck-description">Mô tả (tùy chọn)</Label>
+              <Textarea
+                id="deck-description"
+                value={deckSettings.description}
+                onChange={(e) =>
+                  setDeckSettings({
+                    ...deckSettings,
+                    description: e.target.value,
+                  })
+                }
+                placeholder="Nhập mô tả cho bộ thẻ"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeckSettingsOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleSaveDeckSettings}
+              disabled={!deckSettings.name.trim()}
+            >
+              Lưu thay đổi
             </Button>
           </DialogFooter>
         </DialogContent>

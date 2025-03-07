@@ -19,8 +19,10 @@ export const useLogin = () => {
         return response.data;
       } catch (error: any) {
         if (error.response && error.response.data) {
+          toast.error(error.response.data.message || "Đăng nhập thất bại");
           throw new Error(error.response.data.message || "Đăng nhập thất bại");
         }
+        toast.error("Đăng nhập thất bại");
         throw new Error("Đăng nhập thất bại");
       }
     },
@@ -35,8 +37,10 @@ export const useLogout = () => {
       } catch (error: any) {
         if (error.response && error.response.data) {
           toast.error(error.response.data.message || "Đăng xuất thất bại");
+          throw new Error(error.response.data.message || "Đăng xuất thất bại");
         }
         toast.error("Đăng xuất thất bại");
+        throw new Error("Đăng xuất thất bại");
       }
     },
   });

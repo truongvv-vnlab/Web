@@ -11,6 +11,7 @@ import { GraphqlConfig } from './config/graphql.config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
 import { AppResolver } from './app.resolver';
+import { SyncModule } from './modules/sync/sync.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AppResolver } from './app.resolver';
     }),
     AuthModule,
     UserModule,
+    SyncModule,
     // DeckModule,
     // CardModule,
   ],

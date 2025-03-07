@@ -1,10 +1,12 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UserResp } from './dto/response/user.output';
+import { UserResp } from './dto/response/user.type';
 import { UserService } from './user.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
-import { ChangePasswordResp } from './dto/response/changepass.output';
-import { ChangePasswordInput } from './dto/input/changepass.input';
+import { ChangePasswordResp } from './dto/response/change-pass.output';
+import { ChangePasswordInput } from './dto/input/change-pass.input';
+import { UpdateUserResp } from './dto/response/update-user.output';
+import { UpdateUserInput } from './dto/input/update-user.input';
 
 @Resolver()
 export class UserResolver {
@@ -15,7 +17,10 @@ export class UserResolver {
   async whoami(@Context('req') req: any): Promise<UserResp | null> {
     const userId = req.user.userId;
     const user = await this.userService.findById(userId);
-    console.log(user);
+    if (user) {
+      const { password, ...userData } = user;
+      return userData;
+    }
     return user;
   }
 
@@ -27,5 +32,15 @@ export class UserResolver {
   ): Promise<ChangePasswordResp> {
     const userId = req.user.userId;
     return this.userService.changePassword(userId, input);
+  }
+
+  @Mutation(() => UpdateUserResp)
+  @UseGuards(AuthGuard)
+  async updateUser(
+    @Args('input') input: UpdateUserInput,
+    @Context('req') req: any,
+  ) {
+    const userId = req.user.userId;
+    return this.userService.updateUser(userId, input);
   }
 }

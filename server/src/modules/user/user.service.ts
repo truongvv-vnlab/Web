@@ -3,7 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { User } from 'src/common/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
-import { ChangePasswordInput } from './dto/input/changepass.input';
+import { ChangePasswordInput } from './dto/input/change-pass.input';
+import { UpdateUserInput } from './dto/input/update-user.input';
+import { UpdateUserResp } from './dto/response/update-user.output';
 
 @Injectable()
 export class UserService {
@@ -22,7 +24,10 @@ export class UserService {
   }
 
   async findById(_id: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ _id }).lean();
+    const user = await this.userModel
+      .findOne({ _id })
+      .select('+password')
+      .lean();
     return user;
   }
 
@@ -55,19 +60,47 @@ export class UserService {
       throw new BadRequestException('Mật khẩu mới không trùng khớp');
     }
 
-    const user = await this.userModel.findById(userId);
+    const user = await this.findById(userId);
     if (!user) {
       throw new BadRequestException('Người dùng không tồn tại');
     }
 
+    console.log(user);
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       throw new BadRequestException('Mật khẩu hiện tại không đúng');
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userModel.findByIdAndUpdate(user._id, {
+      password: hashedPassword,
+    });
 
     return { success: true, message: 'Đổi mật khẩu thành công' };
+  }
+
+  async updateUser(
+    userId: string,
+    input: UpdateUserInput,
+  ): Promise<UpdateUserResp> {
+    try {
+      const { name } = input;
+      const user = await this.userModel.findByIdAndUpdate(
+        userId,
+        {
+          name: name,
+        },
+        {
+          new: true,
+        },
+      );
+      return {
+        success: true,
+        message: 'Cập nhật user thành công',
+        user: user,
+      };
+    } catch (error) {
+      throw new BadRequestException(`Cập nhật user thất bại: ${error.message}`);
+    }
   }
 }

@@ -1,11 +1,10 @@
-"use client";
-import { FlashcardDeck } from "@/components/flashcard-deck";
+import { StarredCards } from "@/components/starred-cards";
 
-export default function DashboardPage() {
+export default function StarredPage() {
   return (
     <div className="h-full flex-1 overflow-auto p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6">Bộ thẻ của tôi</h1>
-      <FlashcardDeck />
+      <h1 className="text-2xl font-bold mb-6">Thẻ đã đánh dấu sao</h1>
+      <StarredCards />
     </div>
   );
 }

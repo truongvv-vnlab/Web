@@ -13,7 +13,7 @@ export default function DashboardLayout({
 }) {
   const { setUser } = useUserContext();
   const { loading } = useQuery(GET_USER, {
-    fetchPolicy: "network-only",
+    fetchPolicy: "no-cache",
     onCompleted: (data) => {
       if (data?.whoami) {
         console.log(data.whoami);
