@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,110 +10,22 @@ import {
   Star,
   FolderOpen,
   Frown,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-
-// Mẫu dữ liệu cho các bộ thẻ
-const cardDecks = [
-  {
-    id: "1",
-    name: "Tiếng Anh cơ bản",
-    cards: [
-      {
-        id: "1",
-        front: "Hello",
-        back: "Xin chào",
-        starred: false,
-        deckId: "1",
-        deckName: "Tiếng Anh cơ bản",
-      },
-      {
-        id: "2",
-        front: "Goodbye",
-        back: "Tạm biệt",
-        starred: true,
-        deckId: "1",
-        deckName: "Tiếng Anh cơ bản",
-      },
-      {
-        id: "5",
-        front: "Yes",
-        back: "Có",
-        starred: true,
-        deckId: "1",
-        deckName: "Tiếng Anh cơ bản",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Toán học",
-    cards: [
-      {
-        id: "3",
-        front: "3²",
-        back: "9",
-        starred: true,
-        deckId: "2",
-        deckName: "Toán học",
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Lịch sử Việt Nam",
-    cards: [
-      {
-        id: "4",
-        front: "Năm giành độc lập của Việt Nam",
-        back: "1945",
-        starred: true,
-        deckId: "3",
-        deckName: "Lịch sử Việt Nam",
-      },
-      {
-        id: "5",
-        front: "Năm kết thúc chiến tranh Việt Nam",
-        back: "1975",
-        starred: true,
-        deckId: "3",
-        deckName: "Lịch sử Việt Nam",
-      },
-    ],
-  },
-];
-
-type Card = {
-  id: string;
-  front: string;
-  back: string;
-  starred: boolean;
-  deckId: string;
-  deckName: string;
-};
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchCards,
+  selectActiveStarredCards,
+  updateCard,
+} from '@/store/cardSlice';
+import { AppDispatch } from '@/store';
 
 export function StarredCards() {
-  const [starredCards, setStarredCards] = useState<Card[]>([]);
+  const starredCards = useSelector(selectActiveStarredCards);
+  const dispatch = useDispatch<AppDispatch>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate fetching starred cards
-    const fetchStarredCards = () => {
-      setIsLoading(true);
-
-      // Collect all starred cards from all decks
-      const allStarredCards = cardDecks.flatMap((deck) =>
-        deck.cards.filter((card) => card.starred)
-      );
-
-      setStarredCards(allStarredCards);
-      setIsLoading(false);
-    };
-
-    fetchStarredCards();
-  }, []);
 
   const handlePrevious = () => {
     if (starredCards.length === 0) return;
@@ -139,36 +51,40 @@ export function StarredCards() {
     if (starredCards.length === 0) return;
     setIsFlipped(false);
     const shuffled = [...starredCards].sort(() => Math.random() - 0.5);
-    setStarredCards(shuffled);
-    setCurrentIndex(0);
+    const newIndex = shuffled.findIndex(
+      (card) => card._id === starredCards[currentIndex]._id
+    );
+    setCurrentIndex(newIndex !== -1 ? newIndex : 0);
   };
-
   const handleToggleStar = () => {
     if (starredCards.length === 0) return;
 
-    const updatedCards = [...starredCards];
-    updatedCards[currentIndex] = {
-      ...updatedCards[currentIndex],
-      starred: !updatedCards[currentIndex].starred,
-    };
+    const currentCard = starredCards[currentIndex];
 
-    // If card is unstarred, remove it from the list
-    if (!updatedCards[currentIndex].starred) {
-      const newCards = updatedCards.filter(
+    dispatch(
+      updateCard({
+        ...currentCard,
+        starred: !currentCard.starred,
+      })
+    );
+    if (!currentCard.starred) {
+      const newCards = starredCards.filter(
         (_, index) => index !== currentIndex
       );
-      setStarredCards(newCards);
 
-      // Adjust current index if necessary
-      if (currentIndex >= newCards.length) {
-        setCurrentIndex(Math.max(0, newCards.length - 1));
+      if (newCards.length === 0) {
+        setCurrentIndex(0);
+      } else {
+        setCurrentIndex((prev) => Math.min(prev, newCards.length - 1));
       }
-    } else {
-      setStarredCards(updatedCards);
     }
   };
 
-  // If there are no starred cards
+  useEffect(() => {
+    dispatch(fetchCards());
+    setIsLoading(false);
+  }, [dispatch]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">Đang tải...</div>
@@ -204,7 +120,7 @@ export function StarredCards() {
     <div className="flex flex-col items-center space-y-6">
       {/* Hiển thị tên bộ thẻ */}
       <Badge variant="outline" className="mb-2">
-        {currentCard.deckName}
+        {'Ten'}
       </Badge>
 
       {/* Khu vực hiển thị flip card */}
@@ -215,7 +131,7 @@ export function StarredCards() {
         >
           <div
             className={`absolute inset-0 transform-style-3d transition-transform duration-500 ${
-              isFlipped ? "rotate-y-180" : ""
+              isFlipped ? 'rotate-y-180' : ''
             }`}
           >
             <Card className="absolute inset-0 backface-hidden">

@@ -1,11 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
-  _id: string;
   email?: string;
   username?: string;
   name: string;
-  googleId?: string;
 }
 
 export type UserContextType = {
@@ -28,9 +26,9 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     try {
       setUserState(user);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(user));
     } catch (error) {
-      console.error("Error setting user:", error);
+      console.error('Error setting user:', error);
     } finally {
       setIsLoading(false);
     }
@@ -40,16 +38,16 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     try {
       setUserState(undefined);
-      localStorage.removeItem("user");
+      localStorage.removeItem('user');
     } catch (error) {
-      console.error("Error removing user:", error);
+      console.error('Error removing user:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUserState(JSON.parse(storedUser));
     }

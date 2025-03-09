@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import type React from "react";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import type React from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -15,8 +15,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+} from '@/components/ui/dialog';
+import { Loader2 } from 'lucide-react';
+import { addDeck } from '@/store/deckSlice';
+import { DeckType } from '@/store/type';
+import { generateUUID } from '@/store/indexedDB';
+import { AppDispatch } from '@/store';
 
 type CreateDeckDialogProps = {
   open: boolean;
@@ -29,9 +33,11 @@ export function CreateDeckDialog({
 }: CreateDeckDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [deckData, setDeckData] = useState({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
   });
+
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
   const handleChange = (
@@ -46,20 +52,24 @@ export function CreateDeckDialog({
 
     setIsLoading(true);
 
-    // Simulate API call
+    // Tạo ID giả định
+    const newDeck: DeckType = {
+      _id: generateUUID(),
+      name: deckData.name.trim(),
+      description: deckData.description.trim(),
+      isDelete: false,
+      starred: false,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    dispatch(addDeck(newDeck));
+
     setTimeout(() => {
       setIsLoading(false);
       onOpenChange(false);
-
-      // Reset form
-      setDeckData({
-        name: "",
-        description: "",
-      });
-
-      // Redirect to the new deck (using a fake ID for now)
-      const newDeckId = Date.now().toString();
-      router.push(`/dashboard/deck/${newDeckId}`);
+      setDeckData({ name: '', description: '' });
+      router.push(`/dashboard/deck/${newDeck._id}`);
     }, 1000);
   };
 
@@ -109,7 +119,7 @@ export function CreateDeckDialog({
                 Đang tạo...
               </>
             ) : (
-              "Tạo bộ thẻ"
+              'Tạo bộ thẻ'
             )}
           </Button>
         </DialogFooter>

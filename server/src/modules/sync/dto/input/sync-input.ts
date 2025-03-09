@@ -21,6 +21,9 @@ class CardInput {
   starred: boolean;
 
   @Field()
+  isDelete: boolean;
+
+  @Field()
   version: number;
 
   @Field(() => DateTimeScalar)
@@ -48,6 +51,9 @@ class DeckInput {
   starred: boolean;
 
   @Field()
+  isDelete: boolean;
+
+  @Field()
   version: number;
 
   @Field(() => DateTimeScalar)
@@ -66,6 +72,7 @@ export class SyncInput {
   //Nếu null thì trả full về
   //Nếu version phía dưới lớn hơn thì cập nhật cho db trên và ngược lại
   //Nếu cùng phiên bản thì lấy từng phiên bản của decks/ cards để so sánh tương tự là so sánh theo từng cặp (input vs db) thằng nào phiên bản lớn hơn thì lấy bằng nhau thì so sánh updatedAt
+  //Khi so sánh updatedAt thì thằng nào trễ hơn thì lấy thằng đó (nếu isDelete là true thì xoá luôn)
 
   @Field(() => CardInput)
   cards?: CardInput[];
