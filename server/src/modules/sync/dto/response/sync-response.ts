@@ -38,13 +38,7 @@ class DeckOutput {
   name: string;
 
   @Field()
-  decription: string;
-
-  @Field()
-  userId: string;
-
-  @Field()
-  starred: boolean;
+  description: string;
 
   @Field()
   version: number;
@@ -57,8 +51,8 @@ class DeckOutput {
 }
 
 @ObjectType()
-export class SyncInput {
-  @Field()
+export class SyncResp {
+  @Field(() => Number, { nullable: true })
   version: number | null;
   //Sync sẽ được gọi khi nào ? Đăng nhập, đăng xuất hoặc là bấm nút sync
   //Version trên db sẽ lấy version của input này để lưu
@@ -66,9 +60,9 @@ export class SyncInput {
   //Nếu version phía dưới lớn hơn thì cập nhật cho db trên và ngược lại
   //Nếu cùng phiên bản thì lấy từng phiên bản của decks/ cards để so sánh tương tự là so sánh theo từng cặp (input vs db) thằng nào phiên bản lớn hơn thì lấy bằng nhau thì so sánh updatedAt
 
-  @Field(() => CardOutPut)
+  @Field(() => [CardOutPut], { nullable: true })
   cards?: CardOutPut[];
 
-  @Field(() => DeckOutput)
+  @Field(() => [DeckOutput], { nullable: true })
   decks?: DeckOutput[];
 }

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
@@ -18,15 +18,16 @@ import {
   SidebarGroupContent,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { PlusCircle, Star, Settings, LogOut, PanelLeft } from 'lucide-react';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { CreateDeckDialog } from '@/components/create-deck-dialog';
-import { useLogout } from '@/hooks/auth/useAuth';
-import { useUserContext } from '@/context/userContext';
-import { useSelector, useDispatch } from 'react-redux';
-import { AppDispatch, RootState } from '@/store';
-import { fetchDecks, selectActiveDecks } from '@/store/deckSlice';
+} from "@/components/ui/sidebar";
+import { PlusCircle, Star, Settings, LogOut, PanelLeft } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { CreateDeckDialog } from "@/components/create-deck-dialog";
+import { useLogout } from "@/hooks/auth/useAuth";
+import { useUserContext } from "@/context/userContext";
+import { useSelector, useDispatch } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { fetchDecks, selectActiveDecks } from "@/store/deckSlice";
+import { clearDB } from "@/store/indexedDB";
 
 // // Mẫu dữ liệu cho các bộ thẻ
 // const cardDecks = [
@@ -51,7 +52,7 @@ import { fetchDecks, selectActiveDecks } from '@/store/deckSlice';
 function FloatingButton() {
   const { state, toggleSidebar } = useSidebar();
 
-  if (state === 'expanded') return null;
+  if (state === "expanded") return null;
 
   return (
     <Button
@@ -80,7 +81,8 @@ export function AppSidebar() {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
         removeUser();
-        router.push('/login');
+        clearDB();
+        router.push("/login");
       },
     });
   };
@@ -91,8 +93,8 @@ export function AppSidebar() {
 
   useEffect(() => {
     const checkHoverSetting = () => {
-      const setting = localStorage.getItem('sidebar:hover');
-      setHoverEnabled(setting === 'true');
+      const setting = localStorage.getItem("sidebar:hover");
+      setHoverEnabled(setting === "true");
     };
 
     checkHoverSetting();
@@ -101,14 +103,14 @@ export function AppSidebar() {
       checkHoverSetting();
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
 
-    window.addEventListener('sidebar-settings-changed', checkHoverSetting);
+    window.addEventListener("sidebar-settings-changed", checkHoverSetting);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener(
-        'sidebar-settings-changed',
+        "sidebar-settings-changed",
         handleStorageChange
       );
     };
@@ -118,7 +120,7 @@ export function AppSidebar() {
     <>
       <Sidebar
         className={
-          hoverEnabled ? 'group hover:data-[state=collapsed]:left-0' : ''
+          hoverEnabled ? "group hover:data-[state=collapsed]:left-0" : ""
         }
       >
         <SidebarHeader className="px-2 py-2">
@@ -155,7 +157,7 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === '/dashboard'}
+                    isActive={pathname === "/dashboard"}
                   >
                     <Link href="/dashboard">
                       <Star className="mr-2 h-4 w-4" />
@@ -193,7 +195,7 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/dashboard/settings'}
+                isActive={pathname === "/dashboard/settings"}
               >
                 <Link href="/dashboard/settings">
                   <Settings className="mr-2 h-4 w-4" />
@@ -218,7 +220,7 @@ export function AppSidebar() {
             <div className="grid gap-0.5 text-sm">
               <p className="font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground">
-                {user?.email ?? ''}
+                {user?.email ?? ""}
               </p>
             </div>
           </div>

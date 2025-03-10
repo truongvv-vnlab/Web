@@ -2,7 +2,6 @@ export type DeckType = {
   _id: string;
   name: string;
   description?: string;
-  starred: boolean;
   isDelete: boolean;
   version: number;
   createdAt: string;

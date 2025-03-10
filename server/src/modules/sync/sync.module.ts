@@ -15,5 +15,6 @@ import { SyncService } from './sync.service';
     MongooseModule.forFeature([{ name: Version.name, schema: VersionSchema }]),
   ],
   providers: [SyncResolver, SyncService],
+  exports: [SyncService],
 })
 export class SyncModule {}

@@ -3,8 +3,11 @@ import type React from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useUserContext } from "@/context/userContext";
-import { GET_USER } from "@/lib/graphql/user/useUser";
+import { GET_USER } from "@/lib/graphql/userGraphQL";
 import { useQuery } from "@apollo/client";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { syncData } from "@/lib/graphql/syncGraphQL";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +15,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { setUser } = useUserContext();
+  const [isSyncLoading, setIsSyncLoading] = useState<boolean>(true);
   const { loading } = useQuery(GET_USER, {
     fetchPolicy: "no-cache",
     onCompleted: (data) => {
@@ -22,7 +26,20 @@ export default function DashboardLayout({
     },
   });
 
-  if (loading) return <div>Loading...</div>;
+  useEffect(() => {
+    try {
+      const fetchDecksData = async () => {
+        await syncData();
+      };
+      fetchDecksData();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSyncLoading(false);
+    }
+  }, []);
+
+  if (loading || isSyncLoading) return <div>Loading...</div>;
 
   return (
     <SidebarProvider>

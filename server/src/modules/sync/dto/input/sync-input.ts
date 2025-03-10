@@ -1,9 +1,8 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InputType } from '@nestjs/graphql';
 import { DateTimeScalar } from 'src/common/graphql/datetime.scalar';
 import { UUIDScalar } from 'src/common/graphql/uuid.scalar';
-import { UUIDTypes } from 'uuid';
 
-@ObjectType()
+@InputType()
 class CardInput {
   @Field(() => UUIDScalar)
   _id: string;
@@ -33,7 +32,7 @@ class CardInput {
   updatedAt: Date;
 }
 
-@ObjectType()
+@InputType()
 class DeckInput {
   @Field(() => UUIDScalar)
   _id: string;
@@ -42,13 +41,7 @@ class DeckInput {
   name: string;
 
   @Field()
-  decription: string;
-
-  @Field()
-  userId: string;
-
-  @Field()
-  starred: boolean;
+  description: string;
 
   @Field()
   isDelete: boolean;
@@ -63,9 +56,9 @@ class DeckInput {
   updatedAt: Date;
 }
 
-@ObjectType()
+@InputType()
 export class SyncInput {
-  @Field()
+  @Field(() => Number, { nullable: true })
   version: number | null;
   //Sync sẽ được gọi khi nào ? Đăng nhập, đăng xuất hoặc là bấm nút sync
   //Version trên db sẽ lấy version của input này để lưu
@@ -74,9 +67,9 @@ export class SyncInput {
   //Nếu cùng phiên bản thì lấy từng phiên bản của decks/ cards để so sánh tương tự là so sánh theo từng cặp (input vs db) thằng nào phiên bản lớn hơn thì lấy bằng nhau thì so sánh updatedAt
   //Khi so sánh updatedAt thì thằng nào trễ hơn thì lấy thằng đó (nếu isDelete là true thì xoá luôn)
 
-  @Field(() => CardInput)
+  @Field(() => [CardInput], { nullable: true })
   cards?: CardInput[];
 
-  @Field(() => DeckInput)
+  @Field(() => [DeckInput], { nullable: true })
   decks?: DeckInput[];
 }

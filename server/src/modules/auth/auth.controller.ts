@@ -54,12 +54,7 @@ export class AuthController {
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     try {
       const { profile } = req.user as any;
-      const existingToken: string | null = req.cookies['accessToken'];
-      // console.log('CHECK:' + existingToken);
-      const { jwtToken } = await this.authService.handleGoogleAuth(
-        profile,
-        existingToken,
-      );
+      const { jwtToken } = await this.authService.handleGoogleAuth(profile);
 
       const cookieConfig = this.configService.get('cookie');
 

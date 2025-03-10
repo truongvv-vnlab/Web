@@ -9,9 +9,12 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../user/user.module';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Version, VersionSchema } from 'src/common/schemas/version.schema';
+import { SyncModule } from '../sync/sync.module';
 
 @Module({
-  imports: [UserModule],
+  imports: [UserModule, SyncModule],
   providers: [GoogleStrategy, AuthService],
   controllers: [AuthController],
 })

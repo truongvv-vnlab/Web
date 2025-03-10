@@ -18,7 +18,7 @@ import { AlertCircle, Check } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useUserContext } from "@/context/userContext";
 import { useMutation } from "@apollo/client";
-import { CHANGE_PASSWORD, UPDATE_USER } from "@/lib/graphql/user/useUser";
+import { CHANGE_PASSWORD, UPDATE_USER } from "@/lib/graphql/userGraphQL";
 
 export function UserProfile() {
   const { user, isLoading, setIsLoading, setUser, removeUser } =

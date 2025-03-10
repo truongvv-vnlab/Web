@@ -2,6 +2,29 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CardInput {
+  _id: UUID!
+  back: String!
+  createdAt: DateTime!
+  deckId: String!
+  front: String!
+  isDelete: Boolean!
+  starred: Boolean!
+  updatedAt: DateTime!
+  version: Float!
+}
+
+type CardOutPut {
+  _id: UUID!
+  back: String!
+  createdAt: DateTime!
+  deckId: String!
+  front: String!
+  starred: Boolean!
+  updatedAt: DateTime!
+  version: Float!
+}
+
 input ChangePasswordInput {
   newPassword: String!
   oldPassword: String!
@@ -13,8 +36,31 @@ type ChangePasswordResp {
   success: Boolean!
 }
 
+"""ISO 8601 DateTime Scalar Type"""
+scalar DateTime
+
+input DeckInput {
+  _id: UUID!
+  createdAt: DateTime!
+  description: String!
+  isDelete: Boolean!
+  name: String!
+  updatedAt: DateTime!
+  version: Float!
+}
+
+type DeckOutput {
+  _id: UUID!
+  createdAt: DateTime!
+  description: String!
+  name: String!
+  updatedAt: DateTime!
+  version: Float!
+}
+
 type Mutation {
   changePassword(input: ChangePasswordInput!): ChangePasswordResp!
+  sync(input: SyncInput!): SyncResp!
   updateUser(input: UpdateUserInput!): UpdateUserResp!
 }
 
@@ -22,6 +68,21 @@ type Query {
   getHello: String!
   whoami: UserResp
 }
+
+input SyncInput {
+  cards: [CardInput!]
+  decks: [DeckInput!]
+  version: Float
+}
+
+type SyncResp {
+  cards: [CardOutPut!]
+  decks: [DeckOutput!]
+  version: Float
+}
+
+"""A UUID scalar type"""
+scalar UUID
 
 input UpdateUserInput {
   name: String!

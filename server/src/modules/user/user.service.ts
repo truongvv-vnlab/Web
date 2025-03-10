@@ -65,7 +65,6 @@ export class UserService {
       throw new BadRequestException('Người dùng không tồn tại');
     }
 
-    console.log(user);
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       throw new BadRequestException('Mật khẩu hiện tại không đúng');

@@ -11,12 +11,14 @@ import { LoginOutput } from './dto/response/login.output';
 import { LoginInput } from './dto/input/login.input';
 import { RegisterInput } from './dto/input/register.input';
 import { RegisterOutPut } from './dto/response/register.output';
+import { SyncService } from '../sync/sync.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly versionService: SyncService,
   ) {}
 
   async login(data: LoginInput): Promise<LoginOutput> {
@@ -54,7 +56,7 @@ export class AuthService {
         password: hashedPassword,
         name: data.name,
       });
-      console.log(user);
+      await this.versionService.createVersion(user._id);
       const jwtToken = this.jwtService.sign({
         userId: user._id,
       });
@@ -67,37 +69,11 @@ export class AuthService {
     }
   }
 
-  async handleGoogleAuth(profile: any, existingToken: string | null) {
+  async handleGoogleAuth(profile: any) {
     const email = profile.emails?.[0]?.value || null;
     const googleId = profile.id;
     const name = profile.displayName;
 
-    // 🔹 Nếu có existingToken → Liên kết Google với user hiện tại
-    if (existingToken) {
-      const userData = this.jwtService.verify(existingToken); // Giải mã token để lấy userId
-      const user = await this.userService.findById(userData.userId);
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      // Kiểm tra xem Google ID đã được liên kết với user khác chưa
-      const existingGoogleUser =
-        await this.userService.findByGoogleId(googleId);
-      if (existingGoogleUser && existingGoogleUser._id !== user._id) {
-        throw new ConflictException(
-          'Google account already linked to another user',
-        );
-      }
-
-      // Cập nhật tài khoản Google cho user hiện tại
-      user.googleId = googleId;
-      await user.save();
-
-      return { jwtToken: existingToken }; // Giữ nguyên token cũ
-    }
-
-    // 🔹 Nếu không có existingToken → Đăng nhập hoặc đăng ký
     let user = await this.userService.findByGoogleId(googleId);
 
     if (!user) {
@@ -106,9 +82,9 @@ export class AuthService {
         googleId,
         name,
       });
+      await this.versionService.createVersion(user._id);
     }
 
-    // Tạo token mới
     const jwtToken = this.jwtService.sign({
       userId: user._id,
     });
