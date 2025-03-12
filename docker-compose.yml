@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: nestjs_app
+    restart: always
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    env_file:
+      - ./server/.env
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./flashcard-app
+      dockerfile: Dockerfile
+    container_name: nextjs_app
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./flashcard-app:/app
+      - /app/node_modules
+    command: pnpm run dev
+    depends_on:
+      - backend

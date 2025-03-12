@@ -1,4 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
+import { DeleteType } from 'src/common/enum/deleteType';
 import { DateTimeScalar } from 'src/common/graphql/datetime.scalar';
 import { UUIDScalar } from 'src/common/graphql/uuid.scalar';
 
@@ -51,9 +52,21 @@ class DeckOutput {
 }
 
 @ObjectType()
+class DeleteLogOutput {
+  @Field()
+  type: DeleteType;
+
+  @Field()
+  targetId: string;
+
+  @Field()
+  version: number;
+}
+
+@ObjectType()
 export class SyncResp {
-  @Field(() => Number, { nullable: true })
-  version: number | null;
+  @Field(() => Number)
+  version: number;
   //Sync sẽ được gọi khi nào ? Đăng nhập, đăng xuất hoặc là bấm nút sync
   //Version trên db sẽ lấy version của input này để lưu
   //Nếu null thì trả full về
@@ -65,4 +78,7 @@ export class SyncResp {
 
   @Field(() => [DeckOutput], { nullable: true })
   decks?: DeckOutput[];
+
+  @Field(() => [DeleteLogOutput], { nullable: true })
+  deleteLogs?: DeleteLogOutput[];
 }

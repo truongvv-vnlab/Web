@@ -2,15 +2,16 @@ import {
   createSlice,
   createAsyncThunk,
   createSelector,
-} from '@reduxjs/toolkit';
+} from "@reduxjs/toolkit";
 import {
   saveDeckToDB,
   getDecksFromDB,
   deleteDeckFromDB,
   softDeleteDeckInDB,
-} from './indexedDB';
-import { DeckType } from './type';
-import { RootState } from '.';
+  incrementVersionInLocalStorage,
+} from "./indexedDB";
+import { DeckType } from "./type";
+import { RootState } from ".";
 
 interface DeckState {
   decks: DeckType[];
@@ -20,12 +21,12 @@ const initialState: DeckState = {
   decks: [],
 };
 
-export const fetchDecks = createAsyncThunk('decks/fetch', async () => {
+export const fetchDecks = createAsyncThunk("decks/fetch", async () => {
   return await getDecksFromDB();
 });
 
 const deckSlice = createSlice({
-  name: 'decks',
+  name: "decks",
   initialState,
   reducers: {
     addDeck: (state, action) => {
@@ -37,7 +38,11 @@ const deckSlice = createSlice({
         (deck) => deck._id === action.payload._id
       );
       if (index !== -1) {
-        state.decks[index] = action.payload;
+        const updatedDeck = {
+          ...action.payload,
+          updatedAt: new Date().toISOString(),
+        };
+        state.decks[index] = updatedDeck;
         saveDeckToDB(action.payload);
       }
     },
@@ -53,10 +58,10 @@ const deckSlice = createSlice({
       if (index !== -1) {
         const updatedDeck = {
           ...state.decks[index],
+          version: incrementVersionInLocalStorage(),
           isDelete: true,
           updatedAt: new Date().toISOString(),
         };
-
         state.decks[index] = updatedDeck;
         saveDeckToDB(updatedDeck);
         softDeleteDeckInDB(action.payload);

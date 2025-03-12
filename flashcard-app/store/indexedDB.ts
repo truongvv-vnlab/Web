@@ -6,7 +6,6 @@ const DB_NAME = "DB";
 const DB_VERSION = 1;
 const STORE_DECKS = "decks";
 const STORE_CARDS = "cards";
-const STORE_VERSION = "version";
 
 export const initDB = async () => {
   return openDB(DB_NAME, DB_VERSION, {
@@ -17,16 +16,14 @@ export const initDB = async () => {
       if (!db.objectStoreNames.contains(STORE_CARDS)) {
         db.createObjectStore(STORE_CARDS, { keyPath: "_id" });
       }
-      if (!db.objectStoreNames.contains(STORE_VERSION)) {
-        const store = db.createObjectStore(STORE_VERSION, { keyPath: "id" });
-        store.put({ id: "current", version: 0 });
-      }
     },
   });
 };
 
+//Sinh UUID
 export const generateUUID = (): string => uuidv4();
 
+//Deck - bộ thẻ
 export const saveDeckToDB = async (deck: DeckType) => {
   const db = await initDB();
   if (!deck._id) {
@@ -74,6 +71,7 @@ export const getDecksByVersionFromDB = async (version: number) => {
   return allDecks.filter((deck) => deck.version === version);
 };
 
+//Card - Thẻ
 export const saveCardToDB = async (card: CardType) => {
   const db = await initDB();
   if (!card._id) {
@@ -98,22 +96,27 @@ export const getCardsByVersionFromDB = async (version: number) => {
   return allCards.filter((card) => card.version === version);
 };
 
-export const saveVersionToDB = async (version: VersionType) => {
-  const db = await initDB();
-  return db.put(STORE_VERSION, version);
+// Version - Phiên bản
+export const saveVersionToLocalStorage = (version: number) => {
+  localStorage.setItem("version", version.toString());
 };
 
-export const getVersionFromDB = async (): Promise<number | null> => {
-  const db = await initDB();
-  const versionData = await db.get(STORE_VERSION, "current");
-  return versionData ? versionData.version : null;
+export const getVersionFromLocalStorage = (): number | null => {
+  const version = localStorage.getItem("version");
+  return version ? parseInt(version, 10) : null;
 };
 
-export const updateVersionInDB = async (newVersion: number) => {
-  const db = await initDB();
-  return db.put(STORE_VERSION, { id: "current", version: newVersion });
+export const updateVersionInLocalStorage = (newVersion: number) => {
+  localStorage.setItem("version", newVersion.toString());
 };
 
+export const incrementVersionInLocalStorage = (): number => {
+  const currentVersion = getVersionFromLocalStorage() ?? 0;
+  const newVersion = currentVersion + 1;
+  return newVersion;
+};
+
+//Clear
 export const hardDeletedItemsFromDB = async () => {
   const db = await initDB();
 
@@ -136,5 +139,5 @@ export const clearDB = async () => {
   const db = await initDB();
   await db.clear(STORE_DECKS);
   await db.clear(STORE_CARDS);
-  await db.clear(STORE_VERSION);
+  localStorage.removeItem("version");
 };

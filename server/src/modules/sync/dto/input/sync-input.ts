@@ -58,8 +58,8 @@ class DeckInput {
 
 @InputType()
 export class SyncInput {
-  @Field(() => Number, { nullable: true })
-  version: number | null;
+  @Field(() => Number)
+  version: number;
   //Sync sẽ được gọi khi nào ? Đăng nhập, đăng xuất hoặc là bấm nút sync
   //Version trên db sẽ lấy version của input này để lưu
   //Nếu null thì trả full về

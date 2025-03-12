@@ -58,6 +58,12 @@ type DeckOutput {
   version: Float!
 }
 
+type DeleteLogOutput {
+  targetId: String!
+  type: Float!
+  version: Float!
+}
+
 type Mutation {
   changePassword(input: ChangePasswordInput!): ChangePasswordResp!
   sync(input: SyncInput!): SyncResp!
@@ -72,13 +78,14 @@ type Query {
 input SyncInput {
   cards: [CardInput!]
   decks: [DeckInput!]
-  version: Float
+  version: Float!
 }
 
 type SyncResp {
   cards: [CardOutPut!]
   decks: [DeckOutput!]
-  version: Float
+  deleteLogs: [DeleteLogOutput!]
+  version: Float!
 }
 
 """A UUID scalar type"""

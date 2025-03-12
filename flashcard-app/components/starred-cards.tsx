@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,15 +10,16 @@ import {
   Star,
   FolderOpen,
   Frown,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useDispatch, useSelector } from 'react-redux';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCards,
   selectActiveStarredCards,
   updateCard,
-} from '@/store/cardSlice';
-import { AppDispatch } from '@/store';
+} from "@/store/cardSlice";
+import { AppDispatch } from "@/store";
+import { incrementVersionInLocalStorage } from "@/store/indexedDB";
 
 export function StarredCards() {
   const starredCards = useSelector(selectActiveStarredCards);
@@ -65,6 +66,7 @@ export function StarredCards() {
       updateCard({
         ...currentCard,
         starred: !currentCard.starred,
+        version: incrementVersionInLocalStorage(),
       })
     );
     if (!currentCard.starred) {
@@ -120,7 +122,7 @@ export function StarredCards() {
     <div className="flex flex-col items-center space-y-6">
       {/* Hiển thị tên bộ thẻ */}
       <Badge variant="outline" className="mb-2">
-        {'Ten'}
+        {"Ten"}
       </Badge>
 
       {/* Khu vực hiển thị flip card */}
@@ -131,7 +133,7 @@ export function StarredCards() {
         >
           <div
             className={`absolute inset-0 transform-style-3d transition-transform duration-500 ${
-              isFlipped ? 'rotate-y-180' : ''
+              isFlipped ? "rotate-y-180" : ""
             }`}
           >
             <Card className="absolute inset-0 backface-hidden">

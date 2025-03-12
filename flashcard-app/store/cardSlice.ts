@@ -2,10 +2,10 @@ import {
   createSlice,
   createAsyncThunk,
   createSelector,
-} from '@reduxjs/toolkit';
-import { saveCardToDB, getCardsFromDB, deleteCardFromDB } from './indexedDB';
-import { CardType } from './type';
-import { RootState } from '.';
+} from "@reduxjs/toolkit";
+import { saveCardToDB, getCardsFromDB, deleteCardFromDB } from "./indexedDB";
+import { CardType } from "./type";
+import { RootState } from ".";
 
 interface CardState {
   cards: CardType[];
@@ -15,12 +15,12 @@ const initialState: CardState = {
   cards: [],
 };
 
-export const fetchCards = createAsyncThunk('cards/fetch', async () => {
+export const fetchCards = createAsyncThunk("cards/fetch", async () => {
   return await getCardsFromDB();
 });
 
 const cardSlice = createSlice({
-  name: 'cards',
+  name: "cards",
   initialState,
   reducers: {
     addCard: (state, action) => {

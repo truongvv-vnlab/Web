@@ -1,13 +1,11 @@
-import { configureStore } from '@reduxjs/toolkit';
-import deckReducer from './deckSlice';
-import cardReducer from './cardSlice';
-import versionReducer from './versionSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import deckReducer from "./deckSlice";
+import cardReducer from "./cardSlice";
 
 const store = configureStore({
   reducer: {
     decks: deckReducer,
     cards: cardReducer,
-    version: versionReducer,
   },
 });
 

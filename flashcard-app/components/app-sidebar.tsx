@@ -28,6 +28,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { fetchDecks, selectActiveDecks } from "@/store/deckSlice";
 import { clearDB } from "@/store/indexedDB";
+import { useSyncData } from "@/hooks/sync/useSync";
 
 // // Mẫu dữ liệu cho các bộ thẻ
 // const cardDecks = [
@@ -76,10 +77,12 @@ export function AppSidebar() {
   const logoutMutation = useLogout();
   const decks = useSelector(selectActiveDecks);
   const dispatch = useDispatch<AppDispatch>();
+  const { syncData, isSyncing } = useSyncData();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await syncData();
     logoutMutation.mutate(undefined, {
-      onSuccess: () => {
+      onSuccess: async () => {
         removeUser();
         clearDB();
         router.push("/login");
@@ -134,6 +137,7 @@ export function AppSidebar() {
           <Button
             className="mt-3 w-full justify-start"
             variant="outline"
+            disabled={isSyncing}
             onClick={() => setIsCreateDeckOpen(true)}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -142,7 +146,13 @@ export function AppSidebar() {
           <Button
             className=" w-full justify-start"
             variant="outline"
-            // onClick={() => setIsCreateDeckOpen(true)}
+            disabled={isSyncing}
+            onClick={() => {
+              const fetchSyncData = async () => {
+                await syncData();
+              };
+              fetchSyncData();
+            }}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
             Đồng bộ hoá dữ liệu
@@ -157,6 +167,7 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
+                    disabled={isSyncing}
                     isActive={pathname === "/dashboard"}
                   >
                     <Link href="/dashboard">
@@ -177,6 +188,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={deck._id}>
                     <SidebarMenuButton
                       asChild
+                      disabled={isSyncing}
                       isActive={pathname === `/dashboard/deck/${deck._id}`}
                     >
                       <Link href={`/dashboard/deck/${deck._id}`}>
@@ -195,6 +207,7 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                disabled={isSyncing}
                 isActive={pathname === "/dashboard/settings"}
               >
                 <Link href="/dashboard/settings">

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import type React from 'react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -15,12 +15,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
-import { addDeck } from '@/store/deckSlice';
-import { DeckType } from '@/store/type';
-import { generateUUID } from '@/store/indexedDB';
-import { AppDispatch } from '@/store';
+} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import { addDeck } from "@/store/deckSlice";
+import { DeckType } from "@/store/type";
+import { AppDispatch } from "@/store";
+import {
+  generateUUID,
+  incrementVersionInLocalStorage,
+} from "@/store/indexedDB";
 
 type CreateDeckDialogProps = {
   open: boolean;
@@ -33,8 +36,8 @@ export function CreateDeckDialog({
 }: CreateDeckDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [deckData, setDeckData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
   });
 
   const dispatch = useDispatch<AppDispatch>();
@@ -51,15 +54,14 @@ export function CreateDeckDialog({
     if (!deckData.name.trim()) return;
 
     setIsLoading(true);
-
-    // Tạo ID giả định
+    const version = await incrementVersionInLocalStorage();
+    console.log(version);
     const newDeck: DeckType = {
       _id: generateUUID(),
       name: deckData.name.trim(),
       description: deckData.description.trim(),
       isDelete: false,
-      starred: false,
-      version: 1,
+      version: version,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -68,7 +70,7 @@ export function CreateDeckDialog({
     setTimeout(() => {
       setIsLoading(false);
       onOpenChange(false);
-      setDeckData({ name: '', description: '' });
+      setDeckData({ name: "", description: "" });
       router.push(`/dashboard/deck/${newDeck._id}`);
     }, 1000);
   };
@@ -119,7 +121,7 @@ export function CreateDeckDialog({
                 Đang tạo...
               </>
             ) : (
-              'Tạo bộ thẻ'
+              "Tạo bộ thẻ"
             )}
           </Button>
         </DialogFooter>

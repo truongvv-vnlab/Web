@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,8 +30,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
 import {
   ChevronLeft,
   ChevronRight,
@@ -41,20 +41,28 @@ import {
   Trash2,
   Frown,
   Settings,
-} from 'lucide-react';
-import { AppDispatch, RootState } from '@/store';
-import { useDispatch, useSelector } from 'react-redux';
-import { deleteSoftDeck, fetchDecks, selectDeckById } from '@/store/deckSlice';
-import { CardType, DeckType } from '@/store/type';
+} from "lucide-react";
+import { AppDispatch, RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  deleteSoftDeck,
+  fetchDecks,
+  selectDeckById,
+  updateDeck,
+} from "@/store/deckSlice";
+import { CardType, DeckType } from "@/store/type";
 import {
   addCard,
   deleteSoftCard,
   fetchCards,
   selectAllActiveCardsByDeckId,
   updateCard,
-} from '@/store/cardSlice';
-import { generateUUID } from '@/store/indexedDB';
-import { useRouter } from 'next/navigation';
+} from "@/store/cardSlice";
+import {
+  generateUUID,
+  incrementVersionInLocalStorage,
+} from "@/store/indexedDB";
+import { useRouter } from "next/navigation";
 
 export function DeckDetail({ deckId }: { deckId: string }) {
   const deck: DeckType | undefined = useSelector((state: RootState) =>
@@ -73,8 +81,8 @@ export function DeckDetail({ deckId }: { deckId: string }) {
   const [isDeckSettingsOpen, setIsDeckSettingsOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [newCard, setNewCard] = useState<{ front: string; back: string }>({
-    front: '',
-    back: '',
+    front: "",
+    back: "",
   });
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,8 +90,8 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     name: string;
     description: string;
   }>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
   });
   const router = useRouter();
 
@@ -107,7 +115,8 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     if (!deck || cards.length === 0) return;
     const updatedCard = {
       ...cards[currentCardIndex],
-      starred: !cards[currentCardIndex].starred, // Đảo trạng thái
+      starred: !cards[currentCardIndex].starred,
+      version: incrementVersionInLocalStorage(),
       updatedAt: new Date().toISOString(),
     };
 
@@ -152,11 +161,12 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     if (!deck) return;
     dispatch(deleteSoftDeck(deckId));
     setIsDeleteDeckDialogOpen(false);
-    router.push('/dashboard');
+    router.push("/dashboard");
   };
 
-  const handleAddCard = () => {
+  const handleAddCard = async () => {
     if (!deck || !newCard.front.trim() || !newCard.back.trim()) return;
+    const version = await incrementVersionInLocalStorage();
     const card: CardType = {
       _id: generateUUID(),
       front: newCard.front,
@@ -164,12 +174,12 @@ export function DeckDetail({ deckId }: { deckId: string }) {
       deckId: deck._id,
       isDelete: false,
       starred: false,
-      version: 1,
+      version: version,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     dispatch(addCard(card));
-    setNewCard({ front: '', back: '' });
+    setNewCard({ front: "", back: "" });
     setIsAddDialogOpen(false);
   };
 
@@ -177,13 +187,22 @@ export function DeckDetail({ deckId }: { deckId: string }) {
     if (!deck) return;
     setDeckSettings({
       name: deck.name,
-      description: deck.description || '',
+      description: deck.description || "",
     });
     setIsDeckSettingsOpen(true);
   };
 
-  const handleSaveDeckSettings = () => {
+  const handleSaveDeckSettings = async () => {
     if (!deck || !deckSettings.name.trim()) return;
+    const version = await incrementVersionInLocalStorage();
+    dispatch(
+      updateDeck({
+        ...deck,
+        name: deckSettings.name,
+        description: deckSettings.description,
+        version: version,
+      })
+    );
     setIsDeckSettingsOpen(false);
   };
 
@@ -202,160 +221,6 @@ export function DeckDetail({ deckId }: { deckId: string }) {
   if (!deck) {
     return <div>Không tìm thấy bộ thẻ</div>;
   }
-
-  // if (cards.length === 0) {
-  //   return (
-  //     <div className="space-y-8">
-  //       <div className="flex items-center justify-between">
-  //         <div className="flex items-center gap-2">
-  //           <h1 className="text-2xl font-bold">{deck.name}</h1>
-  //           <Button
-  //             variant="ghost"
-  //             size="icon"
-  //             onClick={handleOpenDeckSettings}
-  //             title="Cài đặt bộ thẻ"
-  //           >
-  //             <Settings className="h-4 w-4" />
-  //           </Button>
-  //           <Button
-  //             variant="ghost"
-  //             size="icon"
-  //             onClick={() => handleDeleteDeck()}
-  //           >
-  //             <Trash2 className="h-4 w-4" />
-  //             <span className="sr-only">Xóa</span>
-  //           </Button>
-  //         </div>
-  //         <div className="flex items-center gap-2">
-  //           <span className="text-sm text-muted-foreground">0 thẻ</span>
-  //         </div>
-  //       </div>
-
-  //       <div className="flex flex-col items-center justify-center h-64 space-y-4">
-  //         <div className="flex flex-col items-center text-center space-y-2">
-  //           <Frown className="h-16 w-16 text-muted-foreground" />
-  //           <h3 className="text-xl font-semibold">
-  //             Không có thẻ nào trong bộ thẻ này
-  //           </h3>
-  //           <p className="text-muted-foreground">
-  //             Bạn chưa có thẻ nào trong bộ thẻ này. Bạn có muốn tạo thẻ mới
-  //             không?
-  //           </p>
-  //         </div>
-  //         <Button onClick={() => setIsAddDialogOpen(true)}>
-  //           <Plus className="mr-2 h-4 w-4" />
-  //           Tạo thẻ mới
-  //         </Button>
-  //       </div>
-
-  //       {/* Dialog thêm thẻ mới */}
-  //       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-  //         <DialogContent>
-  //           <DialogHeader>
-  //             <DialogTitle>Thêm thẻ mới</DialogTitle>
-  //             <DialogDescription>
-  //               Thêm thẻ mới vào bộ thẻ "{deck.name}".
-  //             </DialogDescription>
-  //           </DialogHeader>
-  //           <div className="space-y-4 py-4">
-  //             <div className="space-y-2">
-  //               <Label htmlFor="new-front">Mặt trước</Label>
-  //               <Textarea
-  //                 id="new-front"
-  //                 value={newCard.front}
-  //                 onChange={(e) =>
-  //                   setNewCard({ ...newCard, front: e.target.value })
-  //                 }
-  //                 placeholder="Nhập nội dung mặt trước"
-  //                 rows={3}
-  //               />
-  //             </div>
-  //             <div className="space-y-2">
-  //               <Label htmlFor="new-back">Mặt sau</Label>
-  //               <Textarea
-  //                 id="new-back"
-  //                 value={newCard.back}
-  //                 onChange={(e) =>
-  //                   setNewCard({ ...newCard, back: e.target.value })
-  //                 }
-  //                 placeholder="Nhập nội dung mặt sau"
-  //                 rows={3}
-  //               />
-  //             </div>
-  //           </div>
-  //           <DialogFooter>
-  //             <Button
-  //               variant="outline"
-  //               onClick={() => setIsAddDialogOpen(false)}
-  //             >
-  //               Hủy
-  //             </Button>
-  //             <Button
-  //               onClick={handleAddCard}
-  //               disabled={!newCard.front.trim() || !newCard.back.trim()}
-  //             >
-  //               Thêm thẻ
-  //             </Button>
-  //           </DialogFooter>
-  //         </DialogContent>
-  //       </Dialog>
-
-  //       {/* Dialog cài đặt bộ thẻ */}
-  //       <Dialog open={isDeckSettingsOpen} onOpenChange={setIsDeckSettingsOpen}>
-  //         <DialogContent>
-  //           <DialogHeader>
-  //             <DialogTitle>Cài đặt bộ thẻ</DialogTitle>
-  //             <DialogDescription>
-  //               Chỉnh sửa thông tin bộ thẻ của bạn.
-  //             </DialogDescription>
-  //           </DialogHeader>
-  //           <div className="space-y-4 py-4">
-  //             <div className="space-y-2">
-  //               <Label htmlFor="deck-name">Tên bộ thẻ</Label>
-  //               <Input
-  //                 id="deck-name"
-  //                 value={deckSettings.name}
-  //                 onChange={(e) =>
-  //                   setDeckSettings({ ...deckSettings, name: e.target.value })
-  //                 }
-  //                 placeholder="Nhập tên bộ thẻ"
-  //               />
-  //             </div>
-  //             <div className="space-y-2">
-  //               <Label htmlFor="deck-description">Mô tả (tùy chọn)</Label>
-  //               <Textarea
-  //                 id="deck-description"
-  //                 value={deckSettings.description}
-  //                 onChange={(e) =>
-  //                   setDeckSettings({
-  //                     ...deckSettings,
-  //                     description: e.target.value,
-  //                   })
-  //                 }
-  //                 placeholder="Nhập mô tả cho bộ thẻ"
-  //                 rows={3}
-  //               />
-  //             </div>
-  //           </div>
-  //           <DialogFooter>
-  //             <Button
-  //               variant="outline"
-  //               onClick={() => setIsDeckSettingsOpen(false)}
-  //             >
-  //               Hủy
-  //             </Button>
-  //             <Button
-  //               onClick={handleSaveDeckSettings}
-  //               disabled={!deckSettings.name.trim()}
-  //             >
-  //               Lưu thay đổi
-  //             </Button>
-  //           </DialogFooter>
-  //         </DialogContent>
-  //       </Dialog>
-  //     </div>
-  //   );
-  // }
 
   const currentCard = cards[currentCardIndex];
 
@@ -422,7 +287,7 @@ export function DeckDetail({ deckId }: { deckId: string }) {
             >
               <div
                 className={`absolute inset-0 transform-style-3d transition-transform duration-500 ${
-                  isFlipped ? 'rotate-y-180' : ''
+                  isFlipped ? "rotate-y-180" : ""
                 }`}
               >
                 <Card className="absolute inset-0 backface-hidden">
@@ -451,11 +316,11 @@ export function DeckDetail({ deckId }: { deckId: string }) {
                 variant="outline"
                 size="icon"
                 onClick={handleToggleStar}
-                className={currentCard.starred ? 'text-yellow-500' : ''}
+                className={currentCard.starred ? "text-yellow-500" : ""}
               >
                 <Star
                   className="h-4 w-4"
-                  fill={currentCard.starred ? 'currentColor' : 'none'}
+                  fill={currentCard.starred ? "currentColor" : "none"}
                 />
                 <span className="sr-only">Đánh dấu sao</span>
               </Button>

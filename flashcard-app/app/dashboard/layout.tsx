@@ -5,9 +5,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useUserContext } from "@/context/userContext";
 import { GET_USER } from "@/lib/graphql/userGraphQL";
 import { useQuery } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
-import { syncData } from "@/lib/graphql/syncGraphQL";
+import { useSyncData } from "@/hooks/sync/useSync";
 
 export default function DashboardLayout({
   children,
@@ -15,7 +15,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { setUser } = useUserContext();
-  const [isSyncLoading, setIsSyncLoading] = useState<boolean>(true);
+  const { syncData, isSyncing } = useSyncData();
   const { loading } = useQuery(GET_USER, {
     fetchPolicy: "no-cache",
     onCompleted: (data) => {
@@ -27,19 +27,17 @@ export default function DashboardLayout({
   });
 
   useEffect(() => {
-    try {
-      const fetchDecksData = async () => {
+    const fetchDecksData = async () => {
+      try {
         await syncData();
-      };
-      fetchDecksData();
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsSyncLoading(false);
-    }
-  }, []);
+      } catch (error: any) {
+        toast.error(error.message);
+      }
+    };
+    fetchDecksData();
+  }, [syncData]);
 
-  if (loading || isSyncLoading) return <div>Loading...</div>;
+  if (loading || isSyncing) return <div>Loading...</div>;
 
   return (
     <SidebarProvider>

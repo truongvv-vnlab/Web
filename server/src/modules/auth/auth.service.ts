@@ -48,7 +48,6 @@ export class AuthService {
   }
 
   async register(data: RegisterInput): Promise<RegisterOutPut> {
-    console.log(data);
     try {
       const hashedPassword = await bcrypt.hash(data.password, 10);
       const user = await this.userService.create({
