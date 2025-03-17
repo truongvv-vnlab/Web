@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_USER } from '@/lib/graphql/userGraphQL';
 
 interface User {
   email?: string;
@@ -20,43 +22,35 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUserState] = useState<User | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, loading, error } = useQuery(GET_USER);
+
+  useEffect(() => {
+    if (!loading) {
+      if (data?.whoami) {
+        setUserState(data.whoami);
+      } else if (error) {
+        setUserState(undefined);
+      }
+    }
+  }, [data, loading, error]);
 
   const setUser = (user: User) => {
-    setIsLoading(true);
-    try {
-      setUserState(user);
-      localStorage.setItem('user', JSON.stringify(user));
-    } catch (error) {
-      console.error('Error setting user:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    setUserState(user);
   };
 
   const removeUser = () => {
-    setIsLoading(true);
-    try {
-      setUserState(undefined);
-      localStorage.removeItem('user');
-    } catch (error) {
-      console.error('Error removing user:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    setUserState(undefined);
   };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUserState(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, removeUser, isLoading, setIsLoading }}
+      value={{
+        user,
+        setUser,
+        removeUser,
+        isLoading: loading,
+        setIsLoading: () => {},
+      }}
     >
       {children}
     </UserContext.Provider>

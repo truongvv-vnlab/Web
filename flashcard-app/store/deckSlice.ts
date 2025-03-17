@@ -2,16 +2,16 @@ import {
   createSlice,
   createAsyncThunk,
   createSelector,
-} from "@reduxjs/toolkit";
+} from '@reduxjs/toolkit';
 import {
   saveDeckToDB,
   getDecksFromDB,
   deleteDeckFromDB,
   softDeleteDeckInDB,
   incrementVersionInLocalStorage,
-} from "./indexedDB";
-import { DeckType } from "./type";
-import { RootState } from ".";
+} from './indexedDB';
+import { DeckType } from './type';
+import { RootState } from '.';
 
 interface DeckState {
   decks: DeckType[];
@@ -21,12 +21,12 @@ const initialState: DeckState = {
   decks: [],
 };
 
-export const fetchDecks = createAsyncThunk("decks/fetch", async () => {
+export const fetchDecks = createAsyncThunk('decks/fetch', async () => {
   return await getDecksFromDB();
 });
 
 const deckSlice = createSlice({
-  name: "decks",
+  name: 'decks',
   initialState,
   reducers: {
     addDeck: (state, action) => {
@@ -40,6 +40,7 @@ const deckSlice = createSlice({
       if (index !== -1) {
         const updatedDeck = {
           ...action.payload,
+          version: incrementVersionInLocalStorage(),
           updatedAt: new Date().toISOString(),
         };
         state.decks[index] = updatedDeck;
